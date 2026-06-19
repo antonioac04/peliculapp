@@ -1,0 +1,24 @@
+{
+  "name": "PeliculApp Laravel JWT",
+  "image": "mcr.microsoft.com/devcontainers/php:8.4",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "bmewburn.vscode-intelephense-client",
+        "amiralizadeh9480.laravel-extra-intellisense",
+        "onecentlin.laravel-blade",
+        "eamodio.gitlens",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+
+  "postCreateCommand": "composer install && cp -n .env.example .env && php artisan key:generate && touch database/database.sqlite && npm install"
+}
