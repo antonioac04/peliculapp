@@ -1,0 +1,71 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  docker-publish:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    if: github.event.workflow_run.conclusion == 'success'
+
+    env:
+      IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Convert image name to lowercase
+        run: echo "IMAGE_NAME=$(echo $IMAGE_NAME | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t $IMAGE_NAME:${{ github.sha }} .
+          docker tag $IMAGE_NAME:${{ github.sha }} $IMAGE_NAME:latest
+
+      - name: Push Docker image
+        run: |
+          docker push $IMAGE_NAME:${{ github.sha }}
+          docker push $IMAGE_NAME:latest
+
+      - name: Smoke test container
+        env:
+          APP_KEY: ${{ secrets.APP_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          TEST_USER: ${{ secrets.TEST_USER }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+        run: |
+          docker run -d --name peliculapp-smoke \
+            -p 8000:8000 \
+            -e APP_ENV=testing \
+            -e APP_KEY="$APP_KEY" \
+            -e JWT_SECRET="$JWT_SECRET" \
+            -e DB_CONNECTION=sqlite \
+            -e DB_DATABASE=/tmp/database.sqlite \
+            $IMAGE_NAME:${{ github.sha }}
+
+          sleep 10
+
+          docker exec peliculapp-smoke touch /tmp/database.sqlite
+          docker exec peliculapp-smoke php artisan migrate --force
+
+          docker exec peliculapp-smoke php artisan tinker --execute="\\App\\Models\\User::factory()->create(['email' => '$TEST_USER', 'password' => bcrypt('$TEST_PASSWORD')]);"
+
+          curl -s -o /tmp/response.txt -w "%{http_code}" \
+            -X POST http://127.0.0.1:8000/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d "{\"email\":\"$TEST_USER\",\"password\":\"$TEST_PASSWORD\"}" | grep 200
+
+          docker stop peliculapp-smoke

@@ -1,58 +1,99 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PeliculApp
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Práctica de Puesta en Producción Segura desarrollada con Laravel y JWT.
 
-## About Laravel
+## Tecnologías utilizadas
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Laravel
+- PHP 8.4
+- JWT Authentication
+- SQLite
+- GitHub Actions
+- Docker
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Gestión de autenticación con JWT
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Para esta práctica se ha implementado autenticación mediante JWT (JSON Web Token) con el objetivo de proteger las rutas de la API y permitir el acceso únicamente a usuarios autenticados.
 
-## Learning Laravel
+El tiempo de expiración del token se ha configurado en 60 minutos, por lo que cada token generado tiene una validez de una hora.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Obtención del token
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Para obtener un token es necesario iniciar sesión con un usuario registrado.
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+curl -X POST http://127.0.0.1:8000/api/auth/login \
+-H "Content-Type: application/json" \
+-H "Accept: application/json" \
+-d '{"email":"antonio@test.com","password":"12345678"}'
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Si las credenciales son correctas, la aplicación devuelve una respuesta similar a la siguiente:
 
-## Contributing
+```json
+{
+    "access_token": "TOKEN_JWT",
+    "token_type": "bearer",
+    "expires_in": 3600
+}
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Uso del token en rutas protegidas
 
-## Code of Conduct
+Una vez obtenido el token, este debe enviarse en la cabecera Authorization utilizando el esquema Bearer.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Ejemplo de consulta al listado de directores:
 
-## Security Vulnerabilities
+```bash
+curl http://127.0.0.1:8000/api/directors \
+-H "Authorization: Bearer TOKEN_JWT" \
+-H "Accept: application/json"
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Durante las pruebas realizadas se comprobó que las rutas protegidas responden con un error de autenticación cuando no se envía un token válido.
 
-## License
+### Refresco del token
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Para generar un nuevo token antes de que expire el actual se utiliza el endpoint de refresco:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/refresh \
+-H "Authorization: Bearer TOKEN_JWT" \
+-H "Accept: application/json"
+```
+
+La respuesta devuelve un nuevo token válido que sustituye al anterior.
+
+### Cierre de sesión
+
+Para invalidar el token y finalizar la sesión del usuario se utiliza el endpoint de logout:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/auth/logout \
+-H "Authorization: Bearer TOKEN_JWT" \
+-H "Accept: application/json"
+```
+
+Después de realizar el logout, el token deja de ser válido. Esta situación se verificó realizando nuevas peticiones a rutas protegidas, obteniendo una respuesta de acceso no autorizado.
+
+### Pruebas realizadas
+
+Durante el desarrollo de la práctica se verificó correctamente el funcionamiento de los siguientes procesos:
+
+- Generación de token mediante login.
+- Acceso a rutas protegidas utilizando JWT.
+- Denegación de acceso sin token o con token inválido.
+- Refresco del token mediante el endpoint correspondiente.
+- Invalidación del token después del logout.
+- Protección de las rutas de directores mediante el middleware `auth:api`.
+
+Todas las pruebas realizadas obtuvieron los resultados esperados.
+
+## Dev Container
+
+Se ha añadido un entorno de desarrollo reproducible mediante Dev Containers.
+
+El archivo de configuración se encuentra en:
+
+```text
+.devcontainer/devcontainer.json
