@@ -1,10 +1,10 @@
-name: CI
+çname: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, feature/jwt]
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, feature/jwt]
 
 permissions:
   contents: read
