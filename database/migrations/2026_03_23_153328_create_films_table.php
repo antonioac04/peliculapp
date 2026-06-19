@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->date('release_date');
             $table->text('sinopsis');
-            $table->integer('duration'); //En minutos
+            $table->integer('duration'); // En minutos
             $table->string('gendre');
             $table->foreignId('director_id')->constrained()->onUpdate('cascade')->onDelete('restrict');
             $table->timestamps();

@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\User;
-use App\Models\Film;
 use App\Models\Director;
+use App\Models\Film;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);

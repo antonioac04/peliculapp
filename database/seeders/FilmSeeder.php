@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Support\Facades\DB;
-
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class FilmSeeder extends Seeder
 {
@@ -14,7 +12,7 @@ class FilmSeeder extends Seeder
      */
     public function run(): void
     {
-         // Primero insertamos directores
+        // Primero insertamos directores
         $directors = [
             ['name' => 'Steven', 'surname' => 'Spielberg', 'birthdate' => '1946-12-18'],
             ['name' => 'Christopher', 'surname' => 'Nolan', 'birthdate' => '1970-07-30'],
@@ -31,10 +29,10 @@ class FilmSeeder extends Seeder
         }
 
         $spielberg = DB::table('directors')->where('surname', 'Spielberg')->value('id');
-        $nolan     = DB::table('directors')->where('surname', 'Nolan')->value('id');
-        $scorsese  = DB::table('directors')->where('surname', 'Scorsese')->value('id');
+        $nolan = DB::table('directors')->where('surname', 'Nolan')->value('id');
+        $scorsese = DB::table('directors')->where('surname', 'Scorsese')->value('id');
         $tarantino = DB::table('directors')->where('surname', 'Tarantino')->value('id');
-        $cameron   = DB::table('directors')->where('surname', 'Cameron')->value('id');
+        $cameron = DB::table('directors')->where('surname', 'Cameron')->value('id');
 
         $films = [
             // Spielberg

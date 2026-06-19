@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Film;
 use App\Models\Director;
+use App\Models\Film;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

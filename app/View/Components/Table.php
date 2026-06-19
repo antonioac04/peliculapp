@@ -13,10 +13,9 @@ class Table extends Component
      * Create a new component instance.
      */
     public function __construct(
-        public Collection $header, 
+        public Collection $header,
         public Collection $tableData,
-    )
-    {
+    ) {
         //
     }
 

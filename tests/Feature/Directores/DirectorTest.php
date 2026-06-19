@@ -1,7 +1,8 @@
 <?php
 
-use App\Models\User;
 use App\Models\Director;
+use App\Models\Film;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -115,13 +116,13 @@ test('test_eliminar_director_con_peliculas_asociadas', function () {
 
     $director = Director::factory()->create();
 
-    \App\Models\Film::create([
-       'title' => 'Interstellar',
-       'sinopsis' => 'Pelicula de ciencia ficcion',
-       'duration' => 169,
-       'release_date' => '2014-11-07',
-       'gendre' => 'Ciencia ficcion',
-       'director_id' => $director->id,
+    Film::create([
+        'title' => 'Interstellar',
+        'sinopsis' => 'Pelicula de ciencia ficcion',
+        'duration' => 169,
+        'release_date' => '2014-11-07',
+        'gendre' => 'Ciencia ficcion',
+        'director_id' => $director->id,
     ]);
 
     $token = loginAndGetToken();
